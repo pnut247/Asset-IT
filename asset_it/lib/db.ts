@@ -23,6 +23,10 @@ export function getPool(): mysql.Pool {
       queueLimit: 0,
       namedPlaceholders: true,
       timezone: "Z",
+      // 🟢 เพิ่มรองรับ SSL สำหรับ Aiven บน Vercel
+      ssl: {
+        rejectUnauthorized: false,
+      },
     })
   }
   return global.__mysqlPool
