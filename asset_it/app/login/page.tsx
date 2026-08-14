@@ -12,15 +12,16 @@ import { Boxes, Loader2 } from "lucide-react"
 
 function LoginForm() {
   const params = useSearchParams()
-  const [email, setEmail] = useState("admin@company.com")
-  const [password, setPassword] = useState("admin123")
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     try {
-      await apiPost("/api/auth/login", { email, password })
+      // ส่งค่าเป็น email (เพราะใช้ฟิลด์เดิมในฐานข้อมูล แต่เก็บค่าเป็น username)
+      await apiPost("/api/auth/login", { email: username, password })
       toast.success("Signed in successfully")
       
       const next = params.get("next") || "/assets"
@@ -44,12 +45,12 @@ function LoginForm() {
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="username">Username</Label>
           <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>

@@ -1,5 +1,8 @@
 import { query } from "@/lib/db"
+import { getCurrentUser } from "@/lib/auth"
+import { RoleBadge } from "@/components/status-badge"
 import { SwitchAccountButton } from "@/components/switch-account-button"
+import Image from "next/image"
 
 async function getDashboardData() {
   try {
@@ -28,26 +31,51 @@ async function getDashboardData() {
 
 export default async function Page() {
   const { stats, recentAssets } = await getDashboardData()
+  const user = await getCurrentUser()
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       {/* Header Bar */}
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur px-8 py-4 flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="bg-blue-600 text-white p-2 rounded-lg font-bold">IT</div>
+          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-xl">
+            <Image
+              src="/big_star_co__ltd__gambol_thailand__logo.png"
+              alt="BIGSTAR Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">IT AssetHub</h1>
+            <h1 className="text-xl font-bold tracking-tight">IT BIGSTAR AssetHub</h1>
             <p className="text-xs text-slate-400">ระบบจัดการครุภัณฑ์และอุปกรณ์ไอที</p>
           </div>
         </div>
+
+        {/* ผู้ใช้งานปัจจุบัน / ปุ่มจัดการบัญชี */}
         <div className="flex items-center gap-4">
           <a
             href="/setup"
-            className="text-xs text-slate-400 hover:text-white transition"
+            className="text-xs text-slate-400 hover:text-white transition hidden sm:inline"
           >
             Setup DB
           </a>
-          
+
+          {user && (
+            <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg shadow-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-semibold shrink-0">
+                {user.name?.charAt(0).toUpperCase() || "U"}
+              </div>
+              <div className="text-left hidden sm:block">
+                <p className="text-xs font-medium text-slate-200 leading-none">{user.name}</p>
+                <div className="mt-1">
+                  <RoleBadge role={user.role} />
+                </div>
+              </div>
+            </div>
+          )}
+
           <SwitchAccountButton />
         </div>
       </header>

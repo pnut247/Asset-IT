@@ -4,7 +4,7 @@ import useSWR from "swr"
 import Link from "next/link"
 import { fetcher, formatDate } from "@/lib/client"
 import { Card } from "@/components/ui/card"
-import { AssignmentStatusBadge } from "@/components/status-badge"
+import { AssignmentStatusBadge, RoleBadge } from "@/components/status-badge"
 import {
   HardDrive, CheckCircle2, PackageCheck, Wrench, KeyRound, AlertTriangle, Users, Clock,
 } from "lucide-react"
@@ -12,7 +12,10 @@ import {
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n)
 
 export default function DashboardPage() {
+  const { data: userData } = useSWR("/api/auth/me", fetcher)
   const { data, isLoading } = useSWR("/api/dashboard", fetcher, { refreshInterval: 15000 })
+  
+  const user = userData?.user
   const s = data?.summary
   const recent: any[] = data?.recent ?? []
   const byCategory: any[] = data?.byCategory ?? []
@@ -20,9 +23,27 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Overview of your organization&apos;s IT assets.</p>
+      {/* Header พร้อมแสดงผู้ใช้งานปัจจุบัน */}
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">Overview of your organization&apos;s IT assets.</p>
+        </div>
+
+        {/* แสดงผู้ใช้งานปัจจุบันทางขวาบน */}
+        {user && (
+          <div className="flex items-center gap-3 bg-card border border-border px-3.5 py-2 rounded-xl shadow-sm self-start sm:self-auto">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold shrink-0">
+              {user.name?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <div className="text-left leading-tight">
+              <p className="text-sm font-medium text-foreground">{user.name}</p>
+              <div className="mt-1">
+                <RoleBadge role={user.role} />
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Summary cards */}

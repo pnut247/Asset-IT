@@ -24,18 +24,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Plus, Users } from "lucide-react"
-
-const ROLES = ["Admin", "Staff", "User"] as const
 
 export default function UsersPage() {
   const { data, isLoading, mutate } = useSWR<{ users: User[] }>("/api/users", fetcher)
@@ -43,30 +34,40 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     name: "",
-    email: "",
+    username: "",
     password: "",
-    role: "User",
     department: "",
   })
 
   const users = data?.users ?? []
 
   function reset() {
-    setForm({ name: "", email: "", password: "", role: "User", department: "" })
+    setForm({ name: "", username: "", password: "", department: "" })
   }
 
   async function submit() {
-    if (!form.name || !form.email || !form.password) {
-      toast.error("Name, email and password are required")
+    if (!form.name.trim() || !form.username.trim() || !form.password) {
+      toast.error("กรุณากรอกชื่อ, Username และรหัสผ่านให้ครบถ้วน")
       return
     }
+    if (form.password.length < 6) {
+      toast.error("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร")
+      return
+    }
+
     setSaving(true)
     try {
       await apiRequest("/api/users", {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.name.trim(),
+          username: form.username.trim(),
+          password: form.password,
+          role: "admin",
+          department: form.department.trim(),
+        }),
       })
-      toast.success("User created")
+      toast.success("สร้างผู้ใช้งาน Admin สำเร็จ")
       setOpen(false)
       reset()
       mutate()
@@ -78,6 +79,9 @@ export default function UsersPage() {
   }
 
   const roleColor: Record<string, string> = {
+    admin: "bg-primary/10 text-primary border-primary/20",
+    staff: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+    user: "bg-muted text-muted-foreground border-border",
     Admin: "bg-primary/10 text-primary border-primary/20",
     Staff: "bg-chart-2/10 text-chart-2 border-chart-2/20",
     User: "bg-muted text-muted-foreground border-border",
@@ -100,67 +104,53 @@ export default function UsersPage() {
             setOpen(o)
             if (!o) reset()
           }}
-        >    
+        >
+          <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 size-4" />
               New User
             </Button>
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create User</DialogTitle>
+              <DialogTitle>Create User (Admin Role)</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="grid gap-2">
                 <Label>Full Name</Label>
                 <Input
+                  placeholder="เช่น สมชาย ใจดี"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 />
               </div>
               <div className="grid gap-2">
-                <Label>Email</Label>
+                <Label>Username</Label>
                 <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  type="text"
+                  placeholder="เช่น somchai.j"
+                  value={form.username}
+                  onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
                 />
               </div>
               <div className="grid gap-2">
                 <Label>Password</Label>
                 <Input
                   type="password"
+                  placeholder="อย่างน้อย 6 ตัวอักษร"
                   value={form.password}
                   onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Role</Label>
-                  <Select
-                    value={form.role}
-                    onValueChange={(v) => setForm((f) => ({ ...f, role: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ROLES.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label>Department</Label>
-                  <Input
-                    value={form.department}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, department: e.target.value }))
-                    }
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label>Department</Label>
+                <Input
+                  placeholder="เช่น IT, Accounting"
+                  value={form.department}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, department: e.target.value }))
+                  }
+                />
               </div>
             </div>
             <DialogFooter>
@@ -185,7 +175,7 @@ export default function UsersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Username</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Role</TableHead>
                 </TableRow>
@@ -204,13 +194,13 @@ export default function UsersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((u) => (
+                  users.map((u: any) => (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">{u.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{u.username || u.email}</TableCell>
                       <TableCell>{u.department ?? "—"}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={roleColor[u.role]}>
+                        <Badge variant="outline" className={roleColor[u.role] || roleColor.User}>
                           {u.role}
                         </Badge>
                       </TableCell>
