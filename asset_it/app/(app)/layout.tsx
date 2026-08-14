@@ -14,10 +14,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen w-full bg-background text-foreground flex flex-col lg:flex-row">
+      {/* Sidebar เมนู */}
       <AppSidebar user={user} />
-      <div className="flex-1 min-w-0 lg:pl-64">
-        <main className="p-4 md:p-8 max-w-[1400px] mx-auto">{children}</main>
+
+      {/* กล่องเนื้อหาหลัก */}
+      <div className="w-full flex-1 min-w-0 flex flex-col lg:pl-64 min-h-screen">
+        <main className="w-full flex-1 p-4 pt-16 lg:pt-8 md:p-8 max-w-[1400px] mx-auto overflow-x-hidden">
+          {children}
+        </main>
       </div>
     </div>
   )

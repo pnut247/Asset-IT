@@ -25,14 +25,12 @@ export function AppSidebar({ user }: { user: SessionUser }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
-  // 🟢 แก้ไขฟังก์ชัน Logout ให้สั่ง Hard Reload เพื่อล้าง State/Cache เดิมทิ้ง
   async function logout() {
     try {
       await apiPost("/api/auth/logout")
     } catch (err) {
       console.error("Logout error:", err)
     } finally {
-      // ใช้ window.location.href แทน router.push เพื่อล้างความจำ SWR Cache ทั้งหมด
       window.location.href = "/login"
     }
   }
@@ -41,25 +39,26 @@ export function AppSidebar({ user }: { user: SessionUser }) {
 
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="lg:hidden flex items-center justify-between border-b border-border bg-sidebar text-sidebar-foreground px-4 h-14 sticky top-0 z-30">
+      {/* Mobile top bar - ตั้งให้เป็น fixed กว้างเต็มจอ 100% */}
+      <div className="fixed top-0 left-0 right-0 w-full lg:hidden flex items-center justify-between border-b border-border bg-sidebar text-sidebar-foreground px-4 h-14 z-30">
         <div className="flex items-center gap-2">
           <Boxes className="h-5 w-5 text-sidebar-primary" />
           <span className="font-semibold">IT AssetHub</span>
         </div>
-        <button onClick={() => setOpen(!open)} aria-label="Toggle menu" className="p-2">
+        <button onClick={() => setOpen(!open)} aria-label="Toggle menu" className="p-2 cursor-pointer">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
 
       {/* Overlay */}
       {open && (
-        <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setOpen(false)} />
+        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setOpen(false)} />
       )}
 
+      {/* Sidebar Drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-sidebar text-sidebar-foreground flex flex-col transition-transform lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground flex flex-col transition-transform lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >

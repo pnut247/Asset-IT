@@ -1,6 +1,5 @@
 import mysql from "mysql2/promise"
 
-// A single pooled connection reused across hot reloads / serverless invocations.
 declare global {
   // eslint-disable-next-line no-var
   var __mysqlPool: mysql.Pool | undefined
@@ -11,41 +10,35 @@ export function isDbConfigured(): boolean {
 }
 
 export function getPool(): mysql.Pool {
-  if (!process.env.DATABASE_URL) {
+  const dbUrl = process.env.DATABASE_URL
+  if (!dbUrl) {
     throw new Error("DATABASE_URL is not set. Add your MySQL connection string in Project Settings > Vars.")
   }
 
   if (!global.__mysqlPool) {
+    // เช็คว่าเป็นการต่อแบบ Local หรือไม่
+    const isLocal = dbUrl.includes("localhost") || dbUrl.includes("127.0.0.1")
+
     global.__mysqlPool = mysql.createPool({
-      uri: process.env.DATABASE_URL,
+      uri: dbUrl,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
       namedPlaceholders: true,
       timezone: "Z",
-      // 🟢 เพิ่มรองรับ SSL สำหรับ Aiven บน Vercel
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      // เปิด SSL เฉพาะ Cloud / Aiven (ถ้า Local ให้เป็น undefined)
+      ssl: isLocal ? undefined : { rejectUnauthorized: false },
     })
   }
   return global.__mysqlPool
 }
 
-/**
- * Run a parameterized query. Always use `?` placeholders (or :named with an object)
- * to prevent SQL injection.
- */
 export async function query<T = any>(sql: string, params?: any[] | Record<string, any>): Promise<T[]> {
   const pool = getPool()
   const [rows] = await pool.query(sql, params)
   return rows as T[]
 }
 
-/**
- * Run work inside a transaction. The callback receives a dedicated connection.
- * The transaction is committed on success and rolled back on any thrown error.
- */
 export async function withTransaction<T>(fn: (conn: mysql.PoolConnection) => Promise<T>): Promise<T> {
   const pool = getPool()
   const conn = await pool.getConnection()
