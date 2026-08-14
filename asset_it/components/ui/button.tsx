@@ -1,3 +1,4 @@
+import * as React from "react"
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { cva, type VariantProps } from 'class-variance-authority'
 
@@ -40,17 +41,16 @@ const buttonVariants = cva(
   },
 )
 
-interface ButtonProps
+// ตัด asChild ออกจาก ButtonProps เพราะ Base UI ไม่ใช้งาน
+export interface ButtonProps
   extends ButtonPrimitive.Props,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean
-}
+    VariantProps<typeof buttonVariants> {}
 
 function Button({
   className,
   variant = 'default',
   size = 'default',
-  asChild, // 🟢 ดึง asChild ออกมาแยกไว้ตรงนี้ ไม่ให้ส่งไปที่ ButtonPrimitive
+  asChild,
   ...props
 }: ButtonProps) {
   return (

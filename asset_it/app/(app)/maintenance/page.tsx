@@ -132,7 +132,7 @@ export default function MaintenancePage() {
             if (!o) reset()
           }}
         >
-          <DialogTrigger asChild>
+          <DialogTrigger>
             <Button>
               <Plus className="mr-2 size-4" />
               New Log

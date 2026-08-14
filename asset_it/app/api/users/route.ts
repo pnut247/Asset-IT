@@ -3,7 +3,7 @@ import { json, errorResponse, handleErrors, assertDbConfigured } from "@/lib/api
 import { query } from "@/lib/db"
 import { requireUser, requireRole, hashPassword } from "@/lib/auth"
 
-// List users (any authenticated user can see the directory for assignment purposes).
+// List users
 export async function GET() {
   try {
     assertDbConfigured()
@@ -17,7 +17,7 @@ export async function GET() {
   }
 }
 
-// Create a user (admin only).
+// Create a user
 export async function POST(req: NextRequest) {
   try {
     assertDbConfigured()
@@ -26,7 +26,6 @@ export async function POST(req: NextRequest) {
     const name = String(body.name || "").trim()
     const username = String(body.username || body.email || "").trim()
     const password = String(body.password || "")
-    // 🟢 บังคับให้ Role เป็น "admin" เสมอเมื่อสร้างใหม่
     const role = "admin"
     const department = body.department ? String(body.department).trim() : null
 

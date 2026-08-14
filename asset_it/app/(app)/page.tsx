@@ -46,7 +46,7 @@ export default function DashboardPage() {
         )}
       </header>
 
-      {/* Summary cards */}
+      {/* Summary cards แถวที่ 1 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard label="Total Assets" value={s?.totalAssets} icon={HardDrive} loading={isLoading} accent="text-primary" />
         <SummaryCard label="In-Use" value={s?.inUse} icon={CheckCircle2} loading={isLoading} accent="text-blue-600" />
@@ -54,8 +54,11 @@ export default function DashboardPage() {
         <SummaryCard label="Under Repair" value={s?.underRepair} icon={Wrench} loading={isLoading} accent="text-amber-600" />
       </div>
 
+      {/* Summary cards แถวที่ 2 (ครอบลิงก์ที่ Employees เพื่อกดไปหน้า /users) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard label="Employees" value={s?.totalUsers} icon={Users} loading={isLoading} accent="text-foreground" />
+        <Link href="/users" className="block transition hover:opacity-80">
+          <SummaryCard label="Employees" value={s?.totalUsers} icon={Users} loading={isLoading} accent="text-foreground" />
+        </Link>
         <SummaryCard label="Licenses" value={s?.totalLicenses} icon={KeyRound} loading={isLoading} accent="text-foreground" />
         <SummaryCard label="Expiring ≤30d" value={s?.expiringLicenses} icon={AlertTriangle} loading={isLoading} accent="text-red-600" />
         <SummaryCard label="Overdue Loans" value={s?.overdueAssignments} icon={Clock} loading={isLoading} accent="text-red-600" />
@@ -129,7 +132,7 @@ function SummaryCard({
   accent: string
 }) {
   return (
-    <Card className="p-5">
+    <Card className="p-5 h-full">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{label}</p>

@@ -26,11 +26,13 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Users } from "lucide-react"
+import { Plus, Users, Pencil, Trash2 } from "lucide-react"
 
 export default function UsersPage() {
   const { data, isLoading, mutate } = useSWR<{ users: User[] }>("/api/users", fetcher)
-  const [open, setOpen] = useState(false)
+  
+  // State สำหรับ Create Dialog
+  const [openCreate, setOpenCreate] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     name: "",
@@ -39,13 +41,24 @@ export default function UsersPage() {
     department: "",
   })
 
+  // State สำหรับ Edit Dialog
+  const [openEdit, setOpenEdit] = useState(false)
+  const [editingUser, setEditingUser] = useState<any>(null)
+  const [editForm, setEditForm] = useState({
+    name: "",
+    username: "",
+    department: "",
+    role: "admin",
+  })
+
   const users = data?.users ?? []
 
-  function reset() {
+  function resetCreate() {
     setForm({ name: "", username: "", password: "", department: "" })
   }
 
-  async function submit() {
+  // ฟังก์ชันสร้าง User ใหม่
+  async function submitCreate() {
     if (!form.name.trim() || !form.username.trim() || !form.password) {
       toast.error("กรุณากรอกชื่อ, Username และรหัสผ่านให้ครบถ้วน")
       return
@@ -67,14 +80,71 @@ export default function UsersPage() {
           department: form.department.trim(),
         }),
       })
-      toast.success("สร้างผู้ใช้งาน Admin สำเร็จ")
-      setOpen(false)
-      reset()
+      toast.success("Created New Admin Successfully")
+      setOpenCreate(false)
+      resetCreate()
       mutate()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create user")
     } finally {
       setSaving(false)
+    }
+  }
+
+  // เปิด Dialog แก้ไขข้อมูล พร้อมใส่ข้อมูลเดิม
+  function handleOpenEdit(u: any) {
+    setEditingUser(u)
+    setEditForm({
+      name: u.name || "",
+      username: u.username || u.email || "",
+      department: u.department || "",
+      role: u.role || "admin",
+    })
+    setOpenEdit(true)
+  }
+
+  // ฟังก์ชันอัปเดตข้อมูล User
+  async function submitEdit() {
+    if (!editingUser) return
+    if (!editForm.name.trim() || !editForm.username.trim()) {
+      toast.error("กรุณากรอกชื่อและ Username ให้ครบถ้วน")
+      return
+    }
+
+    setSaving(true)
+    try {
+      await apiRequest(`/api/users/${editingUser.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          name: editForm.name.trim(),
+          username: editForm.username.trim(),
+          department: editForm.department.trim(),
+          role: editForm.role,
+        }),
+      })
+      toast.success("Update User Successfully")
+      setOpenEdit(false)
+      setEditingUser(null)
+      mutate()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update user")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // ฟังก์ชันลบ User
+  async function handleDelete(id: number, name: string) {
+    if (!confirm(`คุณต้องการลบผู้ใช้งาน "${name}" ใช่หรือไม่?`)) return
+
+    try {
+      await apiRequest(`/api/users/${id}`, {
+        method: "DELETE",
+      })
+      toast.success("Deleted User Successfully")
+      mutate()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete user")
     }
   }
 
@@ -98,11 +168,13 @@ export default function UsersPage() {
             Manage staff accounts and access roles.
           </p>
         </div>
+
+        {/* Dialog สำหรับสร้างผู้ใช้ใหม่ */}
         <Dialog
-          open={open}
+          open={openCreate}
           onOpenChange={(o) => {
-            setOpen(o)
-            if (!o) reset()
+            setOpenCreate(o)
+            if (!o) resetCreate()
           }}
         >
           <DialogTrigger asChild>
@@ -154,13 +226,50 @@ export default function UsersPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={submit} disabled={saving}>
+              <Button onClick={submitCreate} disabled={saving}>
                 {saving ? "Saving..." : "Create User"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Dialog สำหรับแก้ไขข้อมูลผู้ใช้ */}
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label>Full Name</Label>
+              <Input
+                value={editForm.name}
+                onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Username</Label>
+              <Input
+                value={editForm.username}
+                onChange={(e) => setEditForm((f) => ({ ...f, username: e.target.value }))}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Department</Label>
+              <Input
+                value={editForm.department}
+                onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={submitEdit} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
@@ -178,18 +287,19 @@ export default function UsersPage() {
                   <TableHead>Username</TableHead>
                   <TableHead>Department</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
                       No users found.
                     </TableCell>
                   </TableRow>
@@ -203,6 +313,22 @@ export default function UsersPage() {
                         <Badge variant="outline" className={roleColor[u.role] || roleColor.User}>
                           {u.role}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenEdit(u)}
+                        >
+                          <Pencil className="size-4 text-muted-foreground hover:text-foreground" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(u.id, u.name)}
+                        >
+                          <Trash2 className="size-4 text-red-500 hover:text-red-600" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))

@@ -106,16 +106,16 @@ export default async function Page() {
           <h2 className="text-base font-semibold mb-4 text-white">การจัดการระบบ (Quick Access)</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <a href="/assets" className="p-4 bg-slate-800/60 hover:bg-blue-600/20 border border-slate-700 hover:border-blue-500 rounded-lg text-slate-200 transition text-center font-medium text-sm block">
-              💻 จัดการอุปกรณ์ (Assets)
+              💻 Assets
             </a>
-            <a href="/assignments" className="p-4 bg-slate-800/60 hover:bg-blue-600/20 border border-slate-700 hover:border-blue-500 rounded-lg text-slate-200 transition text-center font-medium text-sm block">
-              🔄 ประวัติยืม-คืน (Borrow/Return)
+            <a href="/users" className="p-4 bg-slate-800/60 hover:bg-blue-600/20 border border-slate-700 hover:border-blue-500 rounded-lg text-slate-200 transition text-center font-medium text-sm block">
+              🔄 Users
             </a>
             <a href="/maintenance" className="p-4 bg-slate-800/60 hover:bg-blue-600/20 border border-slate-700 hover:border-blue-500 rounded-lg text-slate-200 transition text-center font-medium text-sm block">
-              🛠️ แจ้งซ่อมบำรุง (Maintenance)
+              🛠️ Maintenance
             </a>
             <a href="/licenses" className="p-4 bg-slate-800/60 hover:bg-blue-600/20 border border-slate-700 hover:border-blue-500 rounded-lg text-slate-200 transition text-center font-medium text-sm block">
-              🔑 ไลเซนส์ซอฟต์แวร์ (Licenses)
+              🔑 Licenses Software
             </a>
           </div>
         </div>

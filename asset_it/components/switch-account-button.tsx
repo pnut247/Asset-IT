@@ -3,12 +3,12 @@
 export function SwitchAccountButton() {
   async function handleSwitchAccount() {
     try {
-      // ยิง API ลบ Session
+      // 1. ล้าง Session เดิมผ่าน API
       await fetch("/api/auth/logout", { method: "POST" })
     } catch (e) {
       console.error(e)
     } finally {
-      // 🟢 ล้าง Cache และบังคับเบราว์เซอร์เปิดหน้า /login ใหม่ทันที
+      // 2. เคลียร์ State และพาไปหน้า /login ทันที
       window.location.href = "/login"
     }
   }
